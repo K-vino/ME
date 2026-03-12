@@ -7,7 +7,7 @@ import { Task } from '../types';
 export const Tasks: React.FC = () => {
   const { state, addTask, updateTask, deleteTask } = useAppContext();
   const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [newTaskCategory, setNewTaskCategory] = useState('Learning');
+  const [newTaskCategory, setNewTaskCategory] = useState('Personal');
   const [newTaskPriority, setNewTaskPriority] = useState<'Low' | 'Medium' | 'High'>('Medium');
   const [newTaskDeadline, setNewTaskDeadline] = useState(new Date().toISOString().split('T')[0]);
 
@@ -40,7 +40,7 @@ export const Tasks: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Tasks</h1>
-          <p className="text-zinc-500 dark:text-zinc-400 mt-1">Manage your career and learning to-dos.</p>
+          <p className="text-zinc-500 dark:text-zinc-400 mt-1">Manage your life and productivity to-dos.</p>
         </div>
       </div>
 
@@ -64,11 +64,11 @@ export const Tasks: React.FC = () => {
             onChange={(e) => setNewTaskCategory(e.target.value)}
             className="px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
           >
+            <option value="Health">Health</option>
             <option value="Learning">Learning</option>
-            <option value="Project">Project</option>
-            <option value="Career">Career</option>
-            <option value="Practice">Practice</option>
-            <option value="Portfolio">Portfolio</option>
+            <option value="Productivity">Productivity</option>
+            <option value="Personal">Personal</option>
+            <option value="Financial">Financial</option>
           </select>
           <select
             value={newTaskPriority}

@@ -1,42 +1,28 @@
 export interface UserProfile {
   name: string;
-  location: string;
-  education: string;
-  cgpa: number;
-  careerFocus: string[];
+  height: number;
+  startingWeight: number;
+  targetWeight: number;
+  goalDuration: number;
+  startDate: string;
 }
 
-export interface ResumeItem {
+export interface DailyEntry {
   id: string;
-  title: string;
-  subtitle: string;
   date: string;
-  description: string;
-}
-
-export interface ResumeData {
-  education: ResumeItem[];
-  certifications: ResumeItem[];
-  internships: ResumeItem[];
-  achievements: ResumeItem[];
-  contactLinks: { platform: string; url: string }[];
-}
-
-export interface Skill {
-  id: string;
-  name: string;
-  progress: number;
-  learningHours: number;
-  weeklyImprovement: number;
-}
-
-export interface Project {
-  id: string;
-  name: string;
-  description: string;
-  techStack: string[];
-  status: 'Planning' | 'In Progress' | 'Completed';
-  completionPercentage: number;
+  dayNumber: number;
+  targetWeight: number;
+  actualWeight: number;
+  steps: number;
+  caloriesConsumed: number;
+  caloriesBurned: number;
+  waterIntake: number;
+  sleepHours: number;
+  exerciseType: string;
+  exerciseDuration: number;
+  studyHours: number;
+  mood: string;
+  notes: string;
 }
 
 export interface Task {
@@ -48,31 +34,35 @@ export interface Task {
   category: string;
 }
 
-export interface RoadmapTask {
+export interface Habit {
+  id: string;
+  name: string;
+  frequency: 'Daily' | 'Weekly';
+  completedDates: string[];
+  streak: number;
+  category: string;
+}
+
+export interface Course {
+  id: string;
+  name: string;
+  platform: string;
+  status: 'In Progress' | 'Completed' | 'Planned';
+  progress: number;
+  totalHours: number;
+  completedHours: number;
+  startDate: string;
+  certificateUrl?: string;
+}
+
+export interface Goal {
   id: string;
   title: string;
-  completed: boolean;
-}
-
-export interface RoadmapPhase {
-  id: string;
-  title: string;
-  timeline: string;
-  goal: string;
-  tasks: RoadmapTask[];
-}
-
-export interface SessionAction {
-  timestamp: string;
-  action: string;
-  details: any;
-}
-
-export interface Session {
-  sessionId: string;
-  startTime: string;
-  endTime: string | null;
-  actions: SessionAction[];
+  description: string;
+  targetDate: string;
+  category: 'Health' | 'Career' | 'Financial' | 'Personal' | 'Learning';
+  status: 'In Progress' | 'Completed' | 'On Hold';
+  progress: number;
 }
 
 export interface LogEntry {
@@ -96,11 +86,11 @@ export interface ActivityLog {
 
 export interface AppState {
   userProfile: UserProfile;
-  resumeData: ResumeData;
-  skills: Skill[];
-  projects: Project[];
+  dailyData: DailyEntry[];
   tasks: Task[];
-  roadmap: RoadmapPhase[];
-  sessions: Session[];
+  habits: Habit[];
+  education: Course[];
+  goals: Goal[];
   isDarkMode: boolean;
+  activityLog: ActivityLog;
 }

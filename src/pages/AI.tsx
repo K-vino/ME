@@ -12,7 +12,7 @@ interface Message {
 export const AI: React.FC = () => {
   const { state } = useAppContext();
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'model', content: `Hello ${state.userProfile.name}! I'm your AI Career Coach. I have access to your resume, skills, projects, and roadmap. How can I help you advance your career today?` }
+    { role: 'model', content: `Hello ${state.userProfile.name}! I'm your Personal Life Coach. I've analyzed your health, habits, and goals. How can I help you optimize your life today?` }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -44,21 +44,28 @@ export const AI: React.FC = () => {
 
       const ai = new GoogleGenAI({ apiKey: apiKey });
 
+      const { userProfile, dailyData, habits, education, goals, tasks } = state;
+      const latestEntry = dailyData.length > 0 ? [...dailyData].sort((a, b) => b.dayNumber - a.dayNumber)[0] : null;
+      const currentWeight = latestEntry ? latestEntry.actualWeight : userProfile.startingWeight;
+
       // Construct system context from user data
       const systemContext = `
-        You are an expert AI Career Coach for ${state.userProfile.name}.
-        Profile: Location: ${state.userProfile.location}, Education: ${state.userProfile.education}, CGPA: ${state.userProfile.cgpa}.
-        Career Focus: ${state.userProfile.careerFocus.join(', ')}.
+        You are an expert Personal Life Coach for ${userProfile.name}.
+        Your goal is to help them achieve their life goals, specifically their weight loss target of ${userProfile.targetWeight}kg (starting from ${userProfile.startingWeight}kg).
         
-        Resume Summary:
-        - Experience: ${state.resumeData.experience.length} roles
-        - Projects: ${state.projects.length} active/completed projects
-        - Skills: ${state.skills.map(s => s.name).join(', ')}
+        Current Stats:
+        - Current Weight: ${currentWeight}kg
+        - Height: ${userProfile.height}cm
+        - Goal Duration: ${userProfile.goalDuration} days
+        - Start Date: ${userProfile.startDate}
         
-        Current Roadmap:
-        ${state.roadmap.map(phase => `- ${phase.title}: ${phase.tasks.filter(t => t.completed).length}/${phase.tasks.length} tasks completed`).join('\n')}
+        Current Habits: ${habits.map(h => `${h.name} (${h.streak} day streak)`).join(', ')}
+        Active Goals: ${goals.filter(g => g.status === 'In Progress').map(g => g.title).join(', ')}
+        Current Learning: ${education.filter(c => c.status === 'In Progress').map(c => c.name).join(', ')}
+        Pending Tasks: ${tasks.filter(t => !t.completed).map(t => t.text).join(', ')}
         
-        Provide concise, encouraging, and actionable career advice based on this context. Focus on skill development, project portfolio building, and achieving their career focus.
+        Analyze the user's progress and provide actionable, encouraging, and data-driven advice. 
+        Be concise but impactful. Use a professional yet friendly tone.
       `;
 
       const response = await ai.models.generateContent({
@@ -85,8 +92,8 @@ export const AI: React.FC = () => {
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] max-w-4xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">AI Career Coach</h1>
-        <p className="text-zinc-500 dark:text-zinc-400 mt-1 mb-6">Your personal career advisor powered by Gemini.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">AI Life Coach</h1>
+        <p className="text-zinc-500 dark:text-zinc-400 mt-1 mb-6">Your personal advisor powered by Gemini.</p>
       </div>
 
       <Card className="flex-1 flex flex-col overflow-hidden p-0">

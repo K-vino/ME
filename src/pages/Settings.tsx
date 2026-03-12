@@ -1,19 +1,33 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Card } from '../components/UI';
+import { Save, Download, Upload, Trash2, User } from 'lucide-react';
 import { exportData, importData } from '../utils/storage';
-import { logAction } from '../utils/logger';
-import { Download, Upload, Trash2, Moon, Sun, Save } from 'lucide-react';
 
 export const Settings: React.FC = () => {
-  const { state, updateUserProfile, toggleDarkMode, resetData, importState } = useAppContext();
-  const [profileForm, setProfileForm] = useState(state.userProfile);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { state, updateProfile, importState } = useAppContext();
+  const { userProfile } = state;
 
-  const handleProfileSave = (e: React.FormEvent) => {
+  const [formData, setFormData] = useState(userProfile);
+  const [saveStatus, setSaveStatus] = useState<string | null>(null);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'name' || name === 'startDate' ? value : Number(value)
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateUserProfile(profileForm);
-    alert('Profile updated successfully!');
+    updateProfile(formData);
+    setSaveStatus('Settings saved successfully!');
+    setTimeout(() => setSaveStatus(null), 3000);
+  };
+
+  const handleExport = () => {
+    exportData(state);
   };
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,111 +35,137 @@ export const Settings: React.FC = () => {
     if (file) {
       importData(file, (newState) => {
         importState(newState);
-        alert('Data imported successfully!');
+        setSaveStatus('Data imported successfully!');
+        setTimeout(() => window.location.reload(), 1000);
       });
     }
   };
 
-  const handleExport = () => {
-    logAction('EXPORT_DATA', 'Settings', {}, state, state, state.userProfile.name);
-    exportData(state);
-  };
-
-  const handleReset = () => {
-    if (window.confirm('Are you sure you want to reset all data? This cannot be undone.')) {
-      resetData();
-      alert('Data reset successfully.');
+  const clearData = () => {
+    if (window.confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+      localStorage.clear();
+      window.location.reload();
     }
   };
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Settings</h1>
-        <p className="text-zinc-500 dark:text-zinc-400 mt-1">Manage your profile and application data.</p>
-      </div>
+    <div className="max-w-4xl mx-auto space-y-8">
+      <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">Settings</h1>
 
       <Card title="User Profile">
-        <form onSubmit={handleProfileSave} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Name</label>
-              <input type="text" value={profileForm.name} onChange={e => setProfileForm({...profileForm, name: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+              />
             </div>
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Location</label>
-              <input type="text" value={profileForm.location} onChange={e => setProfileForm({...profileForm, location: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Height (cm)</label>
+              <input
+                type="number"
+                name="height"
+                value={formData.height}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+              />
             </div>
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Education</label>
-              <input type="text" value={profileForm.education} onChange={e => setProfileForm({...profileForm, education: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Starting Weight (kg)</label>
+              <input
+                type="number"
+                step="0.1"
+                name="startingWeight"
+                value={formData.startingWeight}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+              />
             </div>
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">CGPA</label>
-              <input type="number" step="0.1" value={profileForm.cgpa} onChange={e => setProfileForm({...profileForm, cgpa: Number(e.target.value)})} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Target Weight (kg)</label>
+              <input
+                type="number"
+                step="0.1"
+                name="targetWeight"
+                value={formData.targetWeight}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+              />
             </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Career Focus (comma separated)</label>
-              <input type="text" value={profileForm.careerFocus.join(', ')} onChange={e => setProfileForm({...profileForm, careerFocus: e.target.value.split(',').map(s => s.trim())})} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Goal Duration (Days)</label>
+              <input
+                type="number"
+                name="goalDuration"
+                value={formData.goalDuration}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Start Date</label>
+              <input
+                type="date"
+                name="startDate"
+                value={formData.startDate}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none dark:text-white"
+              />
             </div>
           </div>
-          <div className="flex justify-end pt-4">
-            <button type="submit" className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-              <Save className="w-4 h-4 mr-2" /> Save Profile
+
+          <div className="flex items-center justify-between pt-4">
+            {saveStatus && <p className="text-emerald-500 text-sm font-medium">{saveStatus}</p>}
+            <button
+              type="submit"
+              className="ml-auto flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+            >
+              <Save size={18} />
+              Save Changes
             </button>
           </div>
         </form>
       </Card>
 
-      <Card title="Preferences">
-        <div className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-800">
-          <div>
-            <h4 className="font-medium text-zinc-900 dark:text-white">Dark Mode</h4>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">Toggle dark mode appearance.</p>
-          </div>
-          <button
-            onClick={toggleDarkMode}
-            className={`p-2 rounded-lg transition-colors ${state.isDarkMode ? 'bg-indigo-600 text-white' : 'bg-zinc-200 text-zinc-700'}`}
-          >
-            {state.isDarkMode ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-          </button>
-        </div>
-      </Card>
-
       <Card title="Data Management">
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+        <div className="space-y-6">
+          <div className="flex flex-col md:flex-row gap-4">
             <button
               onClick={handleExport}
-              className="flex-1 flex items-center justify-center px-4 py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors border border-zinc-200 dark:border-zinc-700"
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
             >
-              <Download className="w-5 h-5 mr-2" /> Export Backup
+              <Download size={20} />
+              <div className="text-left">
+                <p className="font-bold">Export Data</p>
+                <p className="text-xs opacity-70">Download your data as JSON</p>
+              </div>
             </button>
-            
-            <input
-              type="file"
-              accept=".json"
-              className="hidden"
-              ref={fileInputRef}
-              onChange={handleImport}
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="flex-1 flex items-center justify-center px-4 py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors border border-zinc-200 dark:border-zinc-700"
-            >
-              <Upload className="w-5 h-5 mr-2" /> Import Backup
-            </button>
+
+            <label className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer">
+              <Upload size={20} />
+              <div className="text-left">
+                <p className="font-bold">Import Data</p>
+                <p className="text-xs opacity-70">Restore from a backup file</p>
+              </div>
+              <input type="file" className="hidden" accept=".json" onChange={handleImport} />
+            </label>
           </div>
 
-          <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
+          <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800">
             <button
-              onClick={handleReset}
-              className="w-full flex items-center justify-center px-4 py-3 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors border border-red-200 dark:border-red-500/20"
+              onClick={clearData}
+              className="flex items-center gap-2 text-red-500 hover:text-red-600 font-medium transition-colors"
             >
-              <Trash2 className="w-5 h-5 mr-2" /> Reset All Data
+              <Trash2 size={18} />
+              Clear All Data
             </button>
-            <p className="text-xs text-center text-zinc-500 dark:text-zinc-400 mt-2">
-              Warning: This will permanently delete all your data and restore defaults.
+            <p className="text-xs text-zinc-500 mt-2">
+              Warning: This will permanently delete all your tracked data, habits, and settings.
             </p>
           </div>
         </div>

@@ -1,26 +1,25 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
-import { AppState, UserProfile, ResumeData, Skill, Project, Task, RoadmapPhase, Session, SessionAction } from '../types';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { AppState, UserProfile, DailyEntry, Task, Habit, Course, Goal } from '../types';
 import { loadData, saveData, defaultState } from '../utils/storage';
-import { logAction } from '../utils/logger';
 
 interface AppContextType {
   state: AppState;
-  currentSessionId: string | null;
-  updateUserProfile: (profile: Partial<UserProfile>) => void;
-  updateResumeData: (data: Partial<ResumeData>) => void;
-  deleteResumeItem: (type: keyof ResumeData, id: string) => void;
-  addSkill: (skill: Skill) => void;
-  updateSkill: (skill: Skill) => void;
-  deleteSkill: (id: string) => void;
-  addProject: (project: Project) => void;
-  updateProject: (project: Project) => void;
-  deleteProject: (id: string) => void;
+  updateProfile: (profile: UserProfile) => void;
+  addDailyEntry: (entry: DailyEntry) => void;
+  updateDailyEntry: (entry: DailyEntry) => void;
+  deleteDailyEntry: (id: string) => void;
   addTask: (task: Task) => void;
   updateTask: (task: Task) => void;
   deleteTask: (id: string) => void;
-  addRoadmapPhase: (phase: RoadmapPhase) => void;
-  updateRoadmapPhase: (phase: RoadmapPhase) => void;
-  deleteRoadmapPhase: (id: string) => void;
+  toggleHabit: (habitId: string, date: string) => void;
+  addHabit: (habit: Habit) => void;
+  deleteHabit: (id: string) => void;
+  addCourse: (course: Course) => void;
+  updateCourse: (course: Course) => void;
+  deleteCourse: (id: string) => void;
+  addGoal: (goal: Goal) => void;
+  updateGoal: (goal: Goal) => void;
+  deleteGoal: (id: string) => void;
   toggleDarkMode: () => void;
   resetData: () => void;
   importState: (newState: AppState) => void;
@@ -30,44 +29,6 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<AppState>(loadData());
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-  const isInitialized = useRef(false);
-
-  useEffect(() => {
-    if (!isInitialized.current) {
-      const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      setCurrentSessionId(newSessionId);
-      
-      const newSession: Session = {
-        sessionId: newSessionId,
-        startTime: new Date().toISOString(),
-        endTime: null,
-        actions: []
-      };
-
-      setState(prev => ({
-        ...prev,
-        sessions: [...prev.sessions, newSession]
-      }));
-      
-      logAction('SESSION_STARTED', 'System', { sessionId: newSessionId }, null, null, state.userProfile.name);
-      isInitialized.current = true;
-    }
-
-    const handleBeforeUnload = () => {
-      if (currentSessionId) {
-        setState(prev => ({
-          ...prev,
-          sessions: prev.sessions.map(s => 
-            s.sessionId === currentSessionId ? { ...s, endTime: new Date().toISOString() } : s
-          )
-        }));
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, []);
 
   useEffect(() => {
     saveData(state);
@@ -78,144 +39,145 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, [state]);
 
-  const logToSession = (actionName: string, details: any) => {
-    if (!currentSessionId) return;
-    
-    const action: SessionAction = {
-      timestamp: new Date().toISOString(),
-      action: actionName,
-      details
-    };
-
-    setState(prev => ({
-      ...prev,
-      sessions: prev.sessions.map(s => 
-        s.sessionId === currentSessionId ? { ...s, actions: [...s.actions, action] } : s
-      )
-    }));
+  const updateProfile = (profile: UserProfile) => {
+    setState((prev) => ({ ...prev, userProfile: profile }));
   };
 
-  const updateUserProfile = (profile: Partial<UserProfile>) => {
-    logAction('UPDATE_PROFILE', 'Settings', { updatedFields: Object.keys(profile) }, state.userProfile, { ...state.userProfile, ...profile }, state.userProfile.name);
-    logToSession('UPDATE_PROFILE', { updatedFields: Object.keys(profile) });
-    setState((prev) => ({ ...prev, userProfile: { ...prev.userProfile, ...profile } }));
+  const addDailyEntry = (entry: DailyEntry) => {
+    setState((prev) => ({ ...prev, dailyData: [...prev.dailyData, entry] }));
   };
 
-  const updateResumeData = (data: Partial<ResumeData>) => {
-    logAction('UPDATE_RESUME', 'Resume', { updatedFields: Object.keys(data) }, state.resumeData, { ...state.resumeData, ...data }, state.userProfile.name);
-    logToSession('UPDATE_RESUME', { updatedFields: Object.keys(data) });
-    setState((prev) => ({ ...prev, resumeData: { ...prev.resumeData, ...data } }));
-  };
-
-  const deleteResumeItem = (type: keyof ResumeData, id: string) => {
-    const beforeState = state.resumeData[type].find((item: any) => item.id === id);
-    logAction('DELETE_RESUME_ITEM', 'Resume', { type, itemId: id, title: beforeState?.title }, beforeState, null, state.userProfile.name);
-    logToSession('DELETE_RESUME_ITEM', { type, itemId: id, title: beforeState?.title });
+  const updateDailyEntry = (entry: DailyEntry) => {
     setState((prev) => ({
       ...prev,
-      resumeData: {
-        ...prev.resumeData,
-        [type]: prev.resumeData[type].filter((item: any) => item.id !== id)
-      }
+      dailyData: prev.dailyData.map((e) => (e.id === entry.id ? entry : e))
     }));
   };
 
-  const addSkill = (skill: Skill) => {
-    logAction('ADD_SKILL', 'Skills', { skillId: skill.id, name: skill.name }, null, skill, state.userProfile.name);
-    logToSession('ADD_SKILL', { skillId: skill.id, name: skill.name });
-    setState((prev) => ({ ...prev, skills: [...prev.skills, skill] }));
-  };
-
-  const updateSkill = (skill: Skill) => {
-    const beforeState = state.skills.find(s => s.id === skill.id);
-    logAction('UPDATE_SKILL', 'Skills', { skillId: skill.id, name: skill.name }, beforeState, skill, state.userProfile.name);
-    logToSession('UPDATE_SKILL', { skillId: skill.id, name: skill.name });
-    setState((prev) => ({ ...prev, skills: prev.skills.map((s) => (s.id === skill.id ? skill : s)) }));
-  };
-
-  const deleteSkill = (id: string) => {
-    const beforeState = state.skills.find(s => s.id === id);
-    logAction('DELETE_SKILL', 'Skills', { skillId: id, name: beforeState?.name }, beforeState, null, state.userProfile.name);
-    logToSession('DELETE_SKILL', { skillId: id, name: beforeState?.name });
-    setState((prev) => ({ ...prev, skills: prev.skills.filter((s) => s.id !== id) }));
-  };
-
-  const addProject = (project: Project) => {
-    logAction('ADD_PROJECT', 'Projects', { projectId: project.id, name: project.name }, null, project, state.userProfile.name);
-    logToSession('ADD_PROJECT', { projectId: project.id, name: project.name });
-    setState((prev) => ({ ...prev, projects: [...prev.projects, project] }));
-  };
-
-  const updateProject = (project: Project) => {
-    const beforeState = state.projects.find(p => p.id === project.id);
-    logAction('UPDATE_PROJECT', 'Projects', { projectId: project.id, name: project.name }, beforeState, project, state.userProfile.name);
-    logToSession('UPDATE_PROJECT', { projectId: project.id, name: project.name });
-    setState((prev) => ({ ...prev, projects: prev.projects.map((p) => (p.id === project.id ? project : p)) }));
-  };
-
-  const deleteProject = (id: string) => {
-    const beforeState = state.projects.find(p => p.id === id);
-    logAction('DELETE_PROJECT', 'Projects', { projectId: id, name: beforeState?.name }, beforeState, null, state.userProfile.name);
-    logToSession('DELETE_PROJECT', { projectId: id, name: beforeState?.name });
-    setState((prev) => ({ ...prev, projects: prev.projects.filter((p) => p.id !== id) }));
+  const deleteDailyEntry = (id: string) => {
+    setState((prev) => ({
+      ...prev,
+      dailyData: prev.dailyData.filter((e) => e.id !== id)
+    }));
   };
 
   const addTask = (task: Task) => {
-    logAction('ADD_TASK', 'Tasks', { taskId: task.id, title: task.title }, null, task, state.userProfile.name);
-    logToSession('ADD_TASK', { taskId: task.id, title: task.title });
     setState((prev) => ({ ...prev, tasks: [...prev.tasks, task] }));
   };
-  
+
   const updateTask = (task: Task) => {
-    const beforeState = state.tasks.find(t => t.id === task.id);
-    const action = beforeState?.completed !== task.completed ? (task.completed ? 'COMPLETE_TASK' : 'UNCOMPLETE_TASK') : 'UPDATE_TASK';
-    logAction(action, 'Tasks', { taskId: task.id, title: task.title }, beforeState, task, state.userProfile.name);
-    logToSession(action, { taskId: task.id, title: task.title });
-    setState((prev) => ({ ...prev, tasks: prev.tasks.map((t) => (t.id === task.id ? task : t)) }));
+    setState((prev) => ({
+      ...prev,
+      tasks: prev.tasks.map((t) => (t.id === task.id ? task : t))
+    }));
   };
-  
+
   const deleteTask = (id: string) => {
-    const beforeState = state.tasks.find(t => t.id === id);
-    logAction('DELETE_TASK', 'Tasks', { taskId: id, title: beforeState?.title }, beforeState, null, state.userProfile.name);
-    logToSession('DELETE_TASK', { taskId: id, title: beforeState?.title });
-    setState((prev) => ({ ...prev, tasks: prev.tasks.filter((t) => t.id !== id) }));
+    setState((prev) => ({
+      ...prev,
+      tasks: prev.tasks.filter((t) => t.id !== id)
+    }));
   };
 
-  const addRoadmapPhase = (phase: RoadmapPhase) => {
-    logAction('ADD_ROADMAP_PHASE', 'Roadmap', { phaseId: phase.id, title: phase.title }, null, phase, state.userProfile.name);
-    logToSession('ADD_ROADMAP_PHASE', { phaseId: phase.id, title: phase.title });
-    setState((prev) => ({ ...prev, roadmap: [...prev.roadmap, phase] }));
+  const toggleHabit = (habitId: string, date: string) => {
+    setState((prev) => ({
+      ...prev,
+      habits: prev.habits.map((h) => {
+        if (h.id === habitId) {
+          const isCompleted = h.completedDates.includes(date);
+          const newCompletedDates = isCompleted
+            ? h.completedDates.filter((d) => d !== date)
+            : [...h.completedDates, date];
+          
+          // Simple streak calculation (consecutive days including today)
+          let streak = 0;
+          const sortedDates = [...newCompletedDates].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+          if (sortedDates.length > 0) {
+            const today = new Date().toISOString().split('T')[0];
+            const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+            
+            if (sortedDates[0] === today || sortedDates[0] === yesterday) {
+              streak = 1;
+              for (let i = 0; i < sortedDates.length - 1; i++) {
+                const current = new Date(sortedDates[i]);
+                const next = new Date(sortedDates[i+1]);
+                const diff = (current.getTime() - next.getTime()) / 86400000;
+                if (diff === 1) {
+                  streak++;
+                } else {
+                  break;
+                }
+              }
+            }
+          }
+
+          return {
+            ...h,
+            completedDates: newCompletedDates,
+            streak
+          };
+        }
+        return h;
+      })
+    }));
   };
 
-  const updateRoadmapPhase = (phase: RoadmapPhase) => {
-    const beforeState = state.roadmap.find(r => r.id === phase.id);
-    logAction('UPDATE_ROADMAP', 'Roadmap', { phaseId: phase.id, title: phase.title }, beforeState, phase, state.userProfile.name);
-    logToSession('UPDATE_ROADMAP', { phaseId: phase.id, title: phase.title });
-    setState((prev) => ({ ...prev, roadmap: prev.roadmap.map((r) => (r.id === phase.id ? phase : r)) }));
+  const addHabit = (habit: Habit) => {
+    setState((prev) => ({ ...prev, habits: [...prev.habits, habit] }));
   };
 
-  const deleteRoadmapPhase = (id: string) => {
-    const beforeState = state.roadmap.find(r => r.id === id);
-    logAction('DELETE_ROADMAP_PHASE', 'Roadmap', { phaseId: id, title: beforeState?.title }, beforeState, null, state.userProfile.name);
-    logToSession('DELETE_ROADMAP_PHASE', { phaseId: id, title: beforeState?.title });
-    setState((prev) => ({ ...prev, roadmap: prev.roadmap.filter((r) => r.id !== id) }));
+  const deleteHabit = (id: string) => {
+    setState((prev) => ({
+      ...prev,
+      habits: prev.habits.filter((h) => h.id !== id)
+    }));
+  };
+
+  const addCourse = (course: Course) => {
+    setState((prev) => ({ ...prev, education: [...prev.education, course] }));
+  };
+
+  const updateCourse = (course: Course) => {
+    setState((prev) => ({
+      ...prev,
+      education: prev.education.map((c) => (c.id === course.id ? course : c))
+    }));
+  };
+
+  const deleteCourse = (id: string) => {
+    setState((prev) => ({
+      ...prev,
+      education: prev.education.filter((c) => c.id !== id)
+    }));
+  };
+
+  const addGoal = (goal: Goal) => {
+    setState((prev) => ({ ...prev, goals: [...prev.goals, goal] }));
+  };
+
+  const updateGoal = (goal: Goal) => {
+    setState((prev) => ({
+      ...prev,
+      goals: prev.goals.map((g) => (g.id === goal.id ? goal : g))
+    }));
+  };
+
+  const deleteGoal = (id: string) => {
+    setState((prev) => ({
+      ...prev,
+      goals: prev.goals.filter((g) => g.id !== id)
+    }));
   };
 
   const toggleDarkMode = () => {
-    logAction('TOGGLE_DARK_MODE', 'Settings', { isDarkMode: !state.isDarkMode }, { isDarkMode: state.isDarkMode }, { isDarkMode: !state.isDarkMode }, state.userProfile.name);
-    logToSession('TOGGLE_DARK_MODE', { isDarkMode: !state.isDarkMode });
     setState((prev) => ({ ...prev, isDarkMode: !prev.isDarkMode }));
   };
-  
+
   const resetData = () => {
-    logAction('RESET_DATA', 'Settings', {}, state, defaultState, state.userProfile.name);
-    logToSession('RESET_DATA', {});
     setState(defaultState);
   };
-  
+
   const importState = (newState: AppState) => {
-    logAction('IMPORT_DATA', 'Settings', {}, state, newState, newState.userProfile.name);
-    logToSession('IMPORT_DATA', {});
     setState(newState);
   };
 
@@ -223,22 +185,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     <AppContext.Provider
       value={{
         state,
-        currentSessionId,
-        updateUserProfile,
-        updateResumeData,
-        deleteResumeItem,
-        addSkill,
-        updateSkill,
-        deleteSkill,
-        addProject,
-        updateProject,
-        deleteProject,
+        updateProfile,
+        addDailyEntry,
+        updateDailyEntry,
+        deleteDailyEntry,
         addTask,
         updateTask,
         deleteTask,
-        addRoadmapPhase,
-        updateRoadmapPhase,
-        deleteRoadmapPhase,
+        toggleHabit,
+        addHabit,
+        deleteHabit,
+        addCourse,
+        updateCourse,
+        deleteCourse,
+        addGoal,
+        updateGoal,
+        deleteGoal,
         toggleDarkMode,
         resetData,
         importState,

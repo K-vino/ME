@@ -7,14 +7,13 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { AppProvider } from './context/AppContext';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
-import { Resume } from './pages/Resume';
-import { Roadmap } from './pages/Roadmap';
+import { Tracker } from './pages/Tracker';
 import { Tasks } from './pages/Tasks';
-import { Projects } from './pages/Projects';
-import { Skills } from './pages/Skills';
+import { Habits } from './pages/Habits';
+import { Learning } from './pages/Learning';
+import { Goals } from './pages/Goals';
 import { Analytics } from './pages/Analytics';
 import { AI } from './pages/AI';
-import { ActivityHistory } from './pages/ActivityHistory';
 import { Settings } from './pages/Settings';
 import { AnimatePresence, motion } from 'motion/react';
 
@@ -32,14 +31,13 @@ function AnimatedRoutes() {
       >
         <Routes location={location}>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/resume" element={<Resume />} />
-          <Route path="/roadmap" element={<Roadmap />} />
+          <Route path="/tracker" element={<Tracker />} />
           <Route path="/tasks" element={<Tasks />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/skills" element={<Skills />} />
+          <Route path="/habits" element={<Habits />} />
+          <Route path="/learning" element={<Learning />} />
+          <Route path="/goals" element={<Goals />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/ai" element={<AI />} />
-          <Route path="/activity-log" element={<ActivityHistory />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </motion.div>

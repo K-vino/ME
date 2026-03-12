@@ -1,206 +1,185 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Card, ProgressBar } from '../components/UI';
-import { CheckSquare, FolderGit2, Code2, Map as MapIcon } from 'lucide-react';
-import { Line, Doughnut, Bar } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-} from 'chart.js';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
+import { Card } from '../components/UI';
+import { 
+  Scale, 
+  Target, 
+  TrendingDown, 
+  Calendar, 
+  CheckCircle2, 
+  Flame, 
+  BookOpen, 
+  Clock 
+} from 'lucide-react';
+import { motion } from 'motion/react';
 
 export const Dashboard: React.FC = () => {
   const { state } = useAppContext();
-  const { userProfile, skills, projects, tasks, roadmap } = state;
+  const { userProfile, dailyData, habits, education, goals, tasks } = state;
 
-  // Calculate metrics
-  const totalTasks = tasks.length;
+  const latestEntry = dailyData.length > 0 ? [...dailyData].sort((a, b) => b.dayNumber - a.dayNumber)[0] : null;
+  const currentWeight = latestEntry ? latestEntry.actualWeight : userProfile.startingWeight;
+  const weightLost = userProfile.startingWeight - currentWeight;
+  const targetWeight = userProfile.targetWeight;
+  const totalToLose = userProfile.startingWeight - targetWeight;
+  const weightProgress = totalToLose > 0 ? (weightLost / totalToLose) * 100 : 0;
+
   const completedTasks = tasks.filter(t => t.completed).length;
-  const taskProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+  const pendingTasks = tasks.filter(t => !t.completed).length;
 
-  const activeProjects = projects.filter(p => p.status === 'In Progress').length;
-  const completedProjects = projects.filter(p => p.status === 'Completed').length;
-
-  const totalRoadmapTasks = roadmap.reduce((acc, phase) => acc + phase.tasks.length, 0);
-  const completedRoadmapTasks = roadmap.reduce((acc, phase) => acc + phase.tasks.filter(t => t.completed).length, 0);
-  const roadmapProgress = totalRoadmapTasks > 0 ? (completedRoadmapTasks / totalRoadmapTasks) * 100 : 0;
-
-  const topSkills = [...skills].sort((a, b) => b.progress - a.progress).slice(0, 5);
-
-  // Chart Data
-  const skillChartData = {
-    labels: topSkills.map(s => s.name),
-    datasets: [
-      {
-        label: 'Skill Proficiency (%)',
-        data: topSkills.map(s => s.progress),
-        backgroundColor: 'rgba(99, 102, 241, 0.8)',
-        borderRadius: 4,
-      }
-    ],
-  };
-
-  const projectStatusCounts = {
-    'Completed': completedProjects,
-    'In Progress': activeProjects,
-    'Planning': projects.filter(p => p.status === 'Planning').length,
-  };
-
-  const projectChartData = {
-    labels: Object.keys(projectStatusCounts),
-    datasets: [
-      {
-        data: Object.values(projectStatusCounts),
-        backgroundColor: [
-          'rgba(16, 185, 129, 0.8)', // Emerald
-          'rgba(99, 102, 241, 0.8)', // Indigo
-          'rgba(245, 158, 11, 0.8)', // Amber
-        ],
-        borderWidth: 0,
-      },
-    ],
-  };
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom' as const,
-      },
+  const stats = [
+    { 
+      label: 'Current Weight', 
+      value: `${currentWeight} kg`, 
+      icon: Scale, 
+      color: 'text-indigo-600', 
+      bg: 'bg-indigo-50 dark:bg-indigo-500/10' 
     },
-  };
+    { 
+      label: 'Weight Lost', 
+      value: `${weightLost.toFixed(1)} kg`, 
+      icon: TrendingDown, 
+      color: 'text-emerald-600', 
+      bg: 'bg-emerald-50 dark:bg-emerald-500/10' 
+    },
+    { 
+      label: 'Target Weight', 
+      value: `${targetWeight} kg`, 
+      icon: Target, 
+      color: 'text-orange-600', 
+      bg: 'bg-orange-50 dark:bg-orange-500/10' 
+    },
+    { 
+      label: 'Goal Progress', 
+      value: `${Math.max(0, Math.min(100, weightProgress)).toFixed(1)}%`, 
+      icon: Calendar, 
+      color: 'text-blue-600', 
+      bg: 'bg-blue-50 dark:bg-blue-500/10' 
+    },
+  ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-end">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Dashboard</h1>
-          <p className="text-zinc-500 dark:text-zinc-400 mt-1">Welcome back, {userProfile.name}. Here's your career progress.</p>
-        </div>
-      </div>
+    <div className="space-y-8">
+      <header>
+        <h1 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">
+          Welcome back, {userProfile.name}
+        </h1>
+        <p className="text-zinc-500 dark:text-zinc-400 mt-1">
+          Here's what's happening with your Life OS today.
+        </p>
+      </header>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Roadmap Progress</h3>
-            <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg">
-              <MapIcon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-            </div>
-          </div>
-          <div className="flex items-baseline mb-2">
-            <span className="text-3xl font-bold text-zinc-900 dark:text-white">{roadmapProgress.toFixed(0)}</span>
-            <span className="text-sm text-zinc-500 dark:text-zinc-400 ml-1">%</span>
-          </div>
-          <div className="mt-auto">
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-zinc-500 dark:text-zinc-400">Tasks: {completedRoadmapTasks}/{totalRoadmapTasks}</span>
-            </div>
-            <ProgressBar progress={roadmapProgress} />
-          </div>
-        </Card>
-
-        <Card className="flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Tasks Completed</h3>
-            <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg">
-              <CheckSquare className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-            </div>
-          </div>
-          <div className="flex items-baseline mb-2">
-            <span className="text-3xl font-bold text-zinc-900 dark:text-white">{completedTasks}</span>
-            <span className="text-sm text-zinc-500 dark:text-zinc-400 ml-1">/ {totalTasks}</span>
-          </div>
-          <div className="mt-auto">
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-zinc-500 dark:text-zinc-400">Completion</span>
-              <span className="font-medium text-emerald-600 dark:text-emerald-400">{taskProgress.toFixed(0)}%</span>
-            </div>
-            <ProgressBar progress={taskProgress} colorClass="bg-emerald-500" />
-          </div>
-        </Card>
-
-        <Card className="flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Active Projects</h3>
-            <div className="p-2 bg-amber-50 dark:bg-amber-500/10 rounded-lg">
-              <FolderGit2 className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-            </div>
-          </div>
-          <div className="flex items-baseline mb-2">
-            <span className="text-3xl font-bold text-zinc-900 dark:text-white">{activeProjects}</span>
-            <span className="text-sm text-zinc-500 dark:text-zinc-400 ml-1">ongoing</span>
-          </div>
-          <div className="mt-auto">
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">{completedProjects} projects completed</p>
-          </div>
-        </Card>
-
-        <Card className="flex flex-col">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Top Skills</h3>
-            <div className="p-2 bg-blue-50 dark:bg-blue-500/10 rounded-lg">
-              <Code2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-          <div className="flex items-baseline mb-2">
-            <span className="text-3xl font-bold text-zinc-900 dark:text-white">{skills.length}</span>
-            <span className="text-sm text-zinc-500 dark:text-zinc-400 ml-1">tracked</span>
-          </div>
-          <div className="mt-auto">
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">Keep up the learning!</p>
-          </div>
-        </Card>
+        {stats.map((stat, index) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+          >
+            <Card className="h-full">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`p-2 rounded-xl ${stat.bg} ${stat.color}`}>
+                  <stat.icon size={24} />
+                </div>
+              </div>
+              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{stat.label}</p>
+              <p className="text-2xl font-bold text-zinc-900 dark:text-white mt-1">{stat.value}</p>
+            </Card>
+          </motion.div>
+        ))}
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2" title="Top Skills Proficiency">
-          <div className="h-64">
-            <Bar data={skillChartData} options={chartOptions} />
-          </div>
-        </Card>
-
-        <Card title="Project Status">
-          <div className="h-64 flex items-center justify-center relative">
-            <Doughnut 
-              data={projectChartData} 
-              options={{
-                cutout: '75%',
-                plugins: { legend: { position: 'bottom' } },
-                maintainAspectRatio: false,
-              }} 
-            />
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-8">
-              <span className="text-3xl font-bold text-zinc-900 dark:text-white">{projects.length}</span>
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">Total</span>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <Card title="Today's Habits">
+            <div className="space-y-4">
+              {habits.length > 0 ? (
+                habits.map((habit) => (
+                  <div key={habit.id} className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${habit.completedDates.includes(new Date().toISOString().split('T')[0]) ? 'bg-emerald-100 text-emerald-600' : 'bg-zinc-200 text-zinc-500'}`}>
+                        <CheckCircle2 size={20} />
+                      </div>
+                      <div>
+                        <p className="font-medium text-zinc-900 dark:text-white">{habit.name}</p>
+                        <p className="text-xs text-zinc-500">{habit.category}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-orange-500 font-bold">
+                      <Flame size={16} fill="currentColor" />
+                      <span className="text-sm">{habit.streak}</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-zinc-500 text-center py-4">No habits tracked yet.</p>
+              )}
             </div>
-          </div>
-        </Card>
+          </Card>
+
+          <Card title="Learning Progress">
+            <div className="space-y-6">
+              {education.length > 0 ? (
+                education.map((course) => (
+                  <div key={course.id} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <BookOpen size={18} className="text-indigo-600" />
+                        <span className="font-medium text-zinc-900 dark:text-white">{course.name}</span>
+                      </div>
+                      <span className="text-sm font-bold text-indigo-600">{course.progress}%</span>
+                    </div>
+                    <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-2">
+                      <div className="bg-indigo-600 h-2 rounded-full" style={{ width: `${course.progress}%` }} />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-zinc-500 text-center py-4">No courses added yet.</p>
+              )}
+            </div>
+          </Card>
+        </div>
+
+        <div className="space-y-8">
+          <Card title="Tasks Summary">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-4 bg-indigo-50 dark:bg-indigo-500/5 rounded-xl">
+                <div className="flex items-center gap-3 text-indigo-600">
+                  <Clock size={20} />
+                  <span className="font-medium">Pending</span>
+                </div>
+                <span className="text-xl font-bold text-indigo-700">{pendingTasks}</span>
+              </div>
+              <div className="flex justify-between items-center p-4 bg-emerald-50 dark:bg-emerald-500/5 rounded-xl">
+                <div className="flex items-center gap-3 text-emerald-600">
+                  <CheckCircle2 size={20} />
+                  <span className="font-medium">Completed</span>
+                </div>
+                <span className="text-xl font-bold text-emerald-700">{completedTasks}</span>
+              </div>
+            </div>
+          </Card>
+
+          <Card title="Active Goals">
+            <div className="space-y-4">
+              {goals.filter(g => g.status === 'In Progress').slice(0, 3).map((goal) => (
+                <div key={goal.id} className="p-4 border border-zinc-100 dark:border-zinc-800 rounded-xl">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target size={16} className="text-indigo-600" />
+                    <span className="text-sm font-bold text-zinc-900 dark:text-white">{goal.title}</span>
+                  </div>
+                  <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5">
+                    <div className="bg-indigo-600 h-1.5 rounded-full" style={{ width: `${goal.progress}%` }} />
+                  </div>
+                  <p className="text-[10px] text-zinc-400 mt-1 text-right">{goal.progress}% Complete</p>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   );
 };
-

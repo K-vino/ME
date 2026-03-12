@@ -2,14 +2,13 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
   LayoutDashboard, 
-  FileText, 
-  Map, 
+  ClipboardList, 
   CheckSquare, 
-  FolderGit2, 
-  Code2, 
+  RotateCcw, 
+  GraduationCap, 
+  Target, 
   BarChart3, 
   Bot, 
-  History,
   Settings 
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
@@ -22,14 +21,13 @@ export function cn(...inputs: ClassValue[]) {
 
 const navItems = [
   { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-  { name: 'Resume', path: '/resume', icon: FileText },
-  { name: 'Roadmap', path: '/roadmap', icon: Map },
+  { name: 'Daily Tracker', path: '/tracker', icon: ClipboardList },
   { name: 'Tasks', path: '/tasks', icon: CheckSquare },
-  { name: 'Projects', path: '/projects', icon: FolderGit2 },
-  { name: 'Skills', path: '/skills', icon: Code2 },
+  { name: 'Habits', path: '/habits', icon: RotateCcw },
+  { name: 'Learning', path: '/learning', icon: GraduationCap },
+  { name: 'Goals', path: '/goals', icon: Target },
   { name: 'Analytics', path: '/analytics', icon: BarChart3 },
   { name: 'AI Coach', path: '/ai', icon: Bot },
-  { name: 'Activity Log', path: '/activity-log', icon: History },
   { name: 'Settings', path: '/settings', icon: Settings },
 ];
 
@@ -43,7 +41,7 @@ export const Sidebar: React.FC = () => {
     <aside className="w-64 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 h-screen flex flex-col sticky top-0">
       <div className="p-6">
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">
-          Vino<span className="text-indigo-600 dark:text-indigo-400">Career</span>OS
+          Life<span className="text-indigo-600 dark:text-indigo-400">OS</span>
         </h1>
       </div>
       <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
@@ -72,7 +70,7 @@ export const Sidebar: React.FC = () => {
           </div>
           <div className="ml-3">
             <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{userProfile.name}</p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-500">{userProfile.education}</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-500">{userProfile.startingWeight}kg → {userProfile.targetWeight}kg</p>
           </div>
         </div>
       </div>
