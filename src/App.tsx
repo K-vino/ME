@@ -14,6 +14,7 @@ import { Learning } from './pages/Learning';
 import { Goals } from './pages/Goals';
 import { Analytics } from './pages/Analytics';
 import { AI } from './pages/AI';
+import { ActivityHistory } from './pages/ActivityHistory';
 import { Settings } from './pages/Settings';
 import { AnimatePresence, motion } from 'motion/react';
 
@@ -38,6 +39,7 @@ function AnimatedRoutes() {
           <Route path="/goals" element={<Goals />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/ai" element={<AI />} />
+          <Route path="/activity-log" element={<ActivityHistory />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </motion.div>

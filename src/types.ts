@@ -69,3 +69,22 @@ export interface AppState {
   goals: Goal[];
   isDarkMode: boolean;
 }
+
+export interface LogEntry {
+  id: string;
+  timestamp: string;
+  date: string;
+  action: string;
+  module: string;
+  details: any;
+  beforeState: any;
+  afterState: any;
+  user: string;
+  appVersion: string;
+}
+
+export interface ActivityLog {
+  version: number;
+  createdAt: string;
+  entries: LogEntry[];
+}

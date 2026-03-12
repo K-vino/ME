@@ -9,6 +9,7 @@ import {
   Target, 
   BarChart3, 
   Bot, 
+  History,
   Settings 
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
@@ -28,6 +29,7 @@ const navItems = [
   { name: 'Goals', path: '/goals', icon: Target },
   { name: 'Analytics', path: '/analytics', icon: BarChart3 },
   { name: 'AI Coach', path: '/ai', icon: Bot },
+  { name: 'Activity Log', path: '/activity-log', icon: History },
   { name: 'Settings', path: '/settings', icon: Settings },
 ];
 

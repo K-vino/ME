@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Card } from '../components/UI';
 import { exportData, importData } from '../utils/storage';
+import { logAction } from '../utils/logger';
 import { Download, Upload, Trash2, Moon, Sun, Save } from 'lucide-react';
 
 export const Settings: React.FC = () => {
@@ -23,6 +24,11 @@ export const Settings: React.FC = () => {
         alert('Data imported successfully!');
       });
     }
+  };
+
+  const handleExport = () => {
+    logAction('EXPORT_DATA', 'Settings', {}, state, state, state.userProfile.name);
+    exportData(state);
   };
 
   const handleReset = () => {
@@ -94,7 +100,7 @@ export const Settings: React.FC = () => {
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <button
-              onClick={() => exportData(state)}
+              onClick={handleExport}
               className="flex-1 flex items-center justify-center px-4 py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors border border-zinc-200 dark:border-zinc-700"
             >
               <Download className="w-5 h-5 mr-2" /> Export Backup
