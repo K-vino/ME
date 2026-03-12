@@ -178,7 +178,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const importState = (newState: AppState) => {
-    setState(newState);
+    // Ensure the imported state is valid and has all required arrays
+    const validatedState: AppState = {
+      ...defaultState,
+      ...newState,
+      userProfile: { ...defaultState.userProfile, ...(newState.userProfile || {}) },
+      dailyData: Array.isArray(newState.dailyData) ? newState.dailyData : defaultState.dailyData,
+      tasks: Array.isArray(newState.tasks) ? newState.tasks : defaultState.tasks,
+      habits: Array.isArray(newState.habits) ? newState.habits : defaultState.habits,
+      education: Array.isArray(newState.education) ? newState.education : defaultState.education,
+      goals: Array.isArray(newState.goals) ? newState.goals : defaultState.goals,
+      activityLog: newState.activityLog || defaultState.activityLog,
+    };
+    setState(validatedState);
   };
 
   return (

@@ -49,7 +49,19 @@ export const loadData = (): AppState => {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     if (data) {
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      // Ensure all required fields are present and are arrays where expected
+      return {
+        ...defaultState,
+        ...parsed,
+        userProfile: { ...defaultState.userProfile, ...(parsed.userProfile || {}) },
+        dailyData: Array.isArray(parsed.dailyData) ? parsed.dailyData : defaultState.dailyData,
+        tasks: Array.isArray(parsed.tasks) ? parsed.tasks : defaultState.tasks,
+        habits: Array.isArray(parsed.habits) ? parsed.habits : defaultState.habits,
+        education: Array.isArray(parsed.education) ? parsed.education : defaultState.education,
+        goals: Array.isArray(parsed.goals) ? parsed.goals : defaultState.goals,
+        activityLog: parsed.activityLog || defaultState.activityLog,
+      };
     }
   } catch (error) {
     console.error('Failed to load data from LocalStorage', error);
