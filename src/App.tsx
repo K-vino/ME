@@ -14,6 +14,9 @@ import { Learning } from './pages/Learning';
 import { Goals } from './pages/Goals';
 import { Analytics } from './pages/Analytics';
 import { AI } from './pages/AI';
+import { SmartTracker } from './pages/SmartTracker';
+import { CareerCenter } from './pages/CareerCenter';
+import { ActivityLog } from './pages/ActivityLog';
 import { Settings } from './pages/Settings';
 import { AnimatePresence, motion } from 'motion/react';
 
@@ -38,6 +41,9 @@ function AnimatedRoutes() {
           <Route path="/goals" element={<Goals />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/ai" element={<AI />} />
+          <Route path="/smart-tracker" element={<SmartTracker />} />
+          <Route path="/career" element={<CareerCenter />} />
+          <Route path="/activity" element={<ActivityLog />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </motion.div>

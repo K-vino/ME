@@ -1,6 +1,29 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { AppState, UserProfile, DailyEntry, Task, Habit, Course, Goal } from '../types';
+import { 
+  AppState, 
+  UserProfile, 
+  DailyEntry, 
+  Task, 
+  Habit, 
+  Course, 
+  Goal,
+  CareerProfile,
+  Skill,
+  Certification,
+  Project,
+  Experience,
+  CareerRoadmap,
+  CareerTask,
+  CareerGoal,
+  LearningSession,
+  NutritionData,
+  HealthMetrics,
+  FormulaConfig,
+  CustomFormula
+} from '../types';
 import { loadData, saveData, defaultState } from '../utils/storage';
+import { logAction } from '../utils/logger';
+import * as FormulaEngine from '../utils/formulaEngine';
 
 interface AppContextType {
   state: AppState;
@@ -23,6 +46,36 @@ interface AppContextType {
   toggleDarkMode: () => void;
   resetData: () => void;
   importState: (newState: AppState) => void;
+  // Career Methods
+  updateCareerProfile: (profile: CareerProfile) => void;
+  addSkill: (skill: Skill) => void;
+  updateSkill: (skill: Skill) => void;
+  deleteSkill: (id: string) => void;
+  addCertification: (cert: Certification) => void;
+  updateCertification: (cert: Certification) => void;
+  deleteCertification: (id: string) => void;
+  addProject: (project: Project) => void;
+  updateProject: (project: Project) => void;
+  deleteProject: (id: string) => void;
+  addExperience: (exp: Experience) => void;
+  updateExperience: (exp: Experience) => void;
+  deleteExperience: (id: string) => void;
+  addCareerRoadmap: (roadmap: CareerRoadmap) => void;
+  updateCareerRoadmap: (roadmap: CareerRoadmap) => void;
+  deleteCareerRoadmap: (id: string) => void;
+  addCareerTask: (task: CareerTask) => void;
+  updateCareerTask: (task: CareerTask) => void;
+  deleteCareerTask: (id: string) => void;
+  addCareerGoal: (goal: CareerGoal) => void;
+  updateCareerGoal: (goal: CareerGoal) => void;
+  deleteCareerGoal: (id: string) => void;
+  addLearningSession: (session: LearningSession) => void;
+  deleteLearningSession: (id: string) => void;
+  // Formula Engine Methods
+  updateNutrition: (data: Partial<NutritionData>) => void;
+  updateHealthMetrics: (metrics: Partial<HealthMetrics>) => void;
+  addCustomFormula: (formula: CustomFormula) => void;
+  deleteCustomFormula: (id: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -189,8 +242,263 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       education: Array.isArray(newState.education) ? newState.education : defaultState.education,
       goals: Array.isArray(newState.goals) ? newState.goals : defaultState.goals,
       activityLog: newState.activityLog || defaultState.activityLog,
+      // Career Module
+      careerProfile: { ...defaultState.careerProfile, ...(newState.careerProfile || {}) },
+      skills: Array.isArray(newState.skills) ? newState.skills : defaultState.skills,
+      certifications: Array.isArray(newState.certifications) ? newState.certifications : defaultState.certifications,
+      projects: Array.isArray(newState.projects) ? newState.projects : defaultState.projects,
+      experience: Array.isArray(newState.experience) ? newState.experience : defaultState.experience,
+      careerRoadmaps: Array.isArray(newState.careerRoadmaps) ? newState.careerRoadmaps : defaultState.careerRoadmaps,
+      careerTasks: Array.isArray(newState.careerTasks) ? newState.careerTasks : defaultState.careerTasks,
+      careerGoals: Array.isArray(newState.careerGoals) ? newState.careerGoals : defaultState.careerGoals,
+      learningSessions: Array.isArray(newState.learningSessions) ? newState.learningSessions : defaultState.learningSessions,
     };
     setState(validatedState);
+  };
+
+  // Career Methods Implementation
+  const updateCareerProfile = (profile: CareerProfile) => {
+    setState(prev => {
+      logAction('UPDATE_CAREER_PROFILE', 'Career', { profile }, prev.careerProfile, profile);
+      return { ...prev, careerProfile: profile };
+    });
+  };
+
+  const addSkill = (skill: Skill) => {
+    setState(prev => {
+      logAction('ADD_SKILL', 'Career', { skill });
+      return { ...prev, skills: [...prev.skills, skill] };
+    });
+  };
+
+  const updateSkill = (skill: Skill) => {
+    setState(prev => {
+      const oldSkill = prev.skills.find(s => s.id === skill.id);
+      logAction('UPDATE_SKILL', 'Career', { skill }, oldSkill, skill);
+      return { ...prev, skills: prev.skills.map(s => s.id === skill.id ? skill : s) };
+    });
+  };
+
+  const deleteSkill = (id: string) => {
+    setState(prev => {
+      logAction('DELETE_SKILL', 'Career', { id });
+      return { ...prev, skills: prev.skills.filter(s => s.id !== id) };
+    });
+  };
+
+  const addCertification = (cert: Certification) => {
+    setState(prev => {
+      logAction('ADD_CERTIFICATION', 'Career', { cert });
+      return { ...prev, certifications: [...prev.certifications, cert] };
+    });
+  };
+
+  const updateCertification = (cert: Certification) => {
+    setState(prev => {
+      const oldCert = prev.certifications.find(c => c.id === cert.id);
+      logAction('UPDATE_CERTIFICATION', 'Career', { cert }, oldCert, cert);
+      return { ...prev, certifications: prev.certifications.map(c => c.id === cert.id ? cert : c) };
+    });
+  };
+
+  const deleteCertification = (id: string) => {
+    setState(prev => {
+      logAction('DELETE_CERTIFICATION', 'Career', { id });
+      return { ...prev, certifications: prev.certifications.filter(c => c.id !== id) };
+    });
+  };
+
+  const addProject = (project: Project) => {
+    setState(prev => {
+      logAction('ADD_PROJECT', 'Career', { project });
+      return { ...prev, projects: [...prev.projects, project] };
+    });
+  };
+
+  const updateProject = (project: Project) => {
+    setState(prev => {
+      const oldProject = prev.projects.find(p => p.id === project.id);
+      logAction('UPDATE_PROJECT', 'Career', { project }, oldProject, project);
+      return { ...prev, projects: prev.projects.map(p => p.id === project.id ? project : p) };
+    });
+  };
+
+  const deleteProject = (id: string) => {
+    setState(prev => {
+      logAction('DELETE_PROJECT', 'Career', { id });
+      return { ...prev, projects: prev.projects.filter(p => p.id !== id) };
+    });
+  };
+
+  const addExperience = (exp: Experience) => {
+    setState(prev => {
+      logAction('ADD_EXPERIENCE', 'Career', { exp });
+      return { ...prev, experience: [...prev.experience, exp] };
+    });
+  };
+
+  const updateExperience = (exp: Experience) => {
+    setState(prev => {
+      const oldExp = prev.experience.find(e => e.id === exp.id);
+      logAction('UPDATE_EXPERIENCE', 'Career', { exp }, oldExp, exp);
+      return { ...prev, experience: prev.experience.map(e => e.id === exp.id ? exp : e) };
+    });
+  };
+
+  const deleteExperience = (id: string) => {
+    setState(prev => {
+      logAction('DELETE_EXPERIENCE', 'Career', { id });
+      return { ...prev, experience: prev.experience.filter(e => e.id !== id) };
+    });
+  };
+
+  const addCareerRoadmap = (roadmap: CareerRoadmap) => {
+    setState(prev => {
+      logAction('ADD_ROADMAP', 'Career', { roadmap });
+      return { ...prev, careerRoadmaps: [...prev.careerRoadmaps, roadmap] };
+    });
+  };
+
+  const updateCareerRoadmap = (roadmap: CareerRoadmap) => {
+    setState(prev => {
+      const oldRoadmap = prev.careerRoadmaps.find(r => r.id === roadmap.id);
+      logAction('UPDATE_ROADMAP', 'Career', { roadmap }, oldRoadmap, roadmap);
+      return { ...prev, careerRoadmaps: prev.careerRoadmaps.map(r => r.id === roadmap.id ? roadmap : r) };
+    });
+  };
+
+  const deleteCareerRoadmap = (id: string) => {
+    setState(prev => {
+      logAction('DELETE_ROADMAP', 'Career', { id });
+      return { ...prev, careerRoadmaps: prev.careerRoadmaps.filter(r => r.id !== id) };
+    });
+  };
+
+  const addCareerTask = (task: CareerTask) => {
+    setState(prev => {
+      logAction('ADD_CAREER_TASK', 'Career', { task });
+      return { ...prev, careerTasks: [...prev.careerTasks, task] };
+    });
+  };
+
+  const updateCareerTask = (task: CareerTask) => {
+    setState(prev => {
+      const oldTask = prev.careerTasks.find(t => t.id === task.id);
+      logAction('UPDATE_CAREER_TASK', 'Career', { task }, oldTask, task);
+      return { ...prev, careerTasks: prev.careerTasks.map(t => t.id === task.id ? task : t) };
+    });
+  };
+
+  const deleteCareerTask = (id: string) => {
+    setState(prev => {
+      logAction('DELETE_CAREER_TASK', 'Career', { id });
+      return { ...prev, careerTasks: prev.careerTasks.filter(t => t.id !== id) };
+    });
+  };
+
+  const addCareerGoal = (goal: CareerGoal) => {
+    setState(prev => {
+      logAction('ADD_CAREER_GOAL', 'Career', { goal });
+      return { ...prev, careerGoals: [...prev.careerGoals, goal] };
+    });
+  };
+
+  const updateCareerGoal = (goal: CareerGoal) => {
+    setState(prev => {
+      const oldGoal = prev.careerGoals.find(g => g.id === goal.id);
+      logAction('UPDATE_CAREER_GOAL', 'Career', { goal }, oldGoal, goal);
+      return { ...prev, careerGoals: prev.careerGoals.map(g => g.id === goal.id ? goal : g) };
+    });
+  };
+
+  const deleteCareerGoal = (id: string) => {
+    setState(prev => {
+      logAction('DELETE_CAREER_GOAL', 'Career', { id });
+      return { ...prev, careerGoals: prev.careerGoals.filter(g => g.id !== id) };
+    });
+  };
+
+  const addLearningSession = (session: LearningSession) => {
+    setState(prev => {
+      logAction('START_SESSION', 'Career', { session });
+      return { ...prev, learningSessions: [...prev.learningSessions, session] };
+    });
+  };
+
+  const deleteLearningSession = (id: string) => {
+    setState(prev => {
+      logAction('DELETE_SESSION', 'Career', { id });
+      return { ...prev, learningSessions: prev.learningSessions.filter(s => s.id !== id) };
+    });
+  };
+
+  // Formula Engine Implementation
+  const updateNutrition = (data: Partial<NutritionData>) => {
+    setState(prev => {
+      const newNutrition = { ...prev.nutritionData, ...data };
+      // Auto-calculate dependent values
+      const calculated = FormulaEngine.calculateNutrition(newNutrition.rice_g, newNutrition.wheat_g);
+      const finalNutrition = { ...newNutrition, ...calculated };
+      
+      logAction('UPDATE_NUTRITION', 'Health', { data: finalNutrition });
+      return { ...prev, nutritionData: finalNutrition };
+    });
+  };
+
+  const updateHealthMetrics = (metrics: Partial<HealthMetrics>) => {
+    setState(prev => {
+      const newMetrics = { ...prev.healthMetrics, ...metrics };
+      
+      // Auto-calculate all dependent metrics
+      const caloriesBurnedFromExercise = FormulaEngine.calculateExerciseBurn(
+        newMetrics.exerciseType, 
+        newMetrics.currentWeight, 
+        newMetrics.exerciseDuration
+      );
+      const caloriesBurnedFromSteps = FormulaEngine.calculateStepBurn(newMetrics.steps);
+      const totalBurned = caloriesBurnedFromExercise + caloriesBurnedFromSteps;
+      
+      const sleepScore = FormulaEngine.calculateSleepScore(newMetrics.sleepHours);
+      const waterProgress = FormulaEngine.calculateWaterProgress(newMetrics.waterIntake, newMetrics.currentWeight);
+      const weightProgress = FormulaEngine.calculateWeightProgress(
+        prev.userProfile.startingWeight, 
+        newMetrics.currentWeight, 
+        prev.userProfile.targetWeight
+      );
+      const calorieBalance = prev.nutritionData.totalCalories - totalBurned;
+
+      const finalMetrics: HealthMetrics = {
+        ...newMetrics,
+        caloriesBurned: totalBurned,
+        sleepScore,
+        waterProgress,
+        weightProgress,
+        calorieBalance
+      };
+
+      logAction('UPDATE_HEALTH_METRICS', 'Health', { metrics: finalMetrics });
+      return { ...prev, healthMetrics: finalMetrics };
+    });
+  };
+
+  const addCustomFormula = (formula: CustomFormula) => {
+    setState(prev => ({
+      ...prev,
+      formulaConfig: {
+        ...prev.formulaConfig,
+        customFormulas: [...prev.formulaConfig.customFormulas, formula]
+      }
+    }));
+  };
+
+  const deleteCustomFormula = (id: string) => {
+    setState(prev => ({
+      ...prev,
+      formulaConfig: {
+        ...prev.formulaConfig,
+        customFormulas: prev.formulaConfig.customFormulas.filter(f => f.id !== id)
+      }
+    }));
   };
 
   return (
@@ -216,6 +524,36 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         toggleDarkMode,
         resetData,
         importState,
+        // Career
+        updateCareerProfile,
+        addSkill,
+        updateSkill,
+        deleteSkill,
+        addCertification,
+        updateCertification,
+        deleteCertification,
+        addProject,
+        updateProject,
+        deleteProject,
+        addExperience,
+        updateExperience,
+        deleteExperience,
+        addCareerRoadmap,
+        updateCareerRoadmap,
+        deleteCareerRoadmap,
+        addCareerTask,
+        updateCareerTask,
+        deleteCareerTask,
+        addCareerGoal,
+        updateCareerGoal,
+        deleteCareerGoal,
+        addLearningSession,
+        deleteLearningSession,
+        // Formula Engine
+        updateNutrition,
+        updateHealthMetrics,
+        addCustomFormula,
+        deleteCustomFormula,
       }}
     >
       {children}

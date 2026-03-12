@@ -9,50 +9,61 @@ import {
   CheckCircle2, 
   Flame, 
   BookOpen, 
-  Clock 
+  Clock,
+  Zap,
+  Utensils,
+  Droplets
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { calculatePerformanceScore, calculateHabitRate, calculateTaskCompletion, calculateSleepScore, calculateStudyConsistency } from '../utils/formulaEngine';
 
 export const Dashboard: React.FC = () => {
   const { state } = useAppContext();
-  const { userProfile, dailyData, habits, education, goals, tasks } = state;
+  const { userProfile, dailyData, habits, education, goals, tasks, healthMetrics, nutritionData, learningSessions, careerGoals, skills, careerTasks } = state;
 
-  const latestEntry = dailyData.length > 0 ? [...dailyData].sort((a, b) => b.dayNumber - a.dayNumber)[0] : null;
-  const currentWeight = latestEntry ? latestEntry.actualWeight : userProfile.startingWeight;
-  const weightLost = userProfile.startingWeight - currentWeight;
-  const targetWeight = userProfile.targetWeight;
-  const totalToLose = userProfile.startingWeight - targetWeight;
-  const weightProgress = totalToLose > 0 ? (weightLost / totalToLose) * 100 : 0;
+  const today = new Date().toISOString().split('T')[0];
+  const habitRate = calculateHabitRate(habits, today);
+  const taskRate = calculateTaskCompletion(tasks);
+  const sleepScore = calculateSleepScore(healthMetrics.sleepHours);
+  const studyScore = calculateStudyConsistency(learningSessions);
+  const performanceScore = calculatePerformanceScore(habitRate, taskRate, sleepScore, studyScore);
 
   const completedTasks = tasks.filter(t => t.completed).length;
   const pendingTasks = tasks.filter(t => !t.completed).length;
 
+  const careerGoalProgress = careerGoals.length > 0 
+    ? Math.round(careerGoals.reduce((acc, g) => acc + g.progress, 0) / careerGoals.length) 
+    : 0;
+  
+  const totalLearningMinutes = learningSessions.reduce((acc, s) => acc + s.durationMinutes, 0);
+  const totalLearningHours = (totalLearningMinutes / 60).toFixed(1);
+
   const stats = [
     { 
-      label: 'Current Weight', 
-      value: `${currentWeight} kg`, 
-      icon: Scale, 
+      label: 'Performance Score', 
+      value: `${performanceScore}%`, 
+      icon: Zap, 
+      color: 'text-yellow-600', 
+      bg: 'bg-yellow-50 dark:bg-yellow-500/10' 
+    },
+    { 
+      label: 'Career Goal Progress', 
+      value: `${careerGoalProgress}%`, 
+      icon: Target, 
       color: 'text-indigo-600', 
       bg: 'bg-indigo-50 dark:bg-indigo-500/10' 
     },
     { 
-      label: 'Weight Lost', 
-      value: `${weightLost.toFixed(1)} kg`, 
-      icon: TrendingDown, 
+      label: 'Learning Hours', 
+      value: `${totalLearningHours}h`, 
+      icon: Clock, 
       color: 'text-emerald-600', 
       bg: 'bg-emerald-50 dark:bg-emerald-500/10' 
     },
     { 
-      label: 'Target Weight', 
-      value: `${targetWeight} kg`, 
-      icon: Target, 
-      color: 'text-orange-600', 
-      bg: 'bg-orange-50 dark:bg-orange-500/10' 
-    },
-    { 
-      label: 'Goal Progress', 
-      value: `${Math.max(0, Math.min(100, weightProgress)).toFixed(1)}%`, 
-      icon: Calendar, 
+      label: 'Water Progress', 
+      value: `${healthMetrics.waterProgress}%`, 
+      icon: Droplets, 
       color: 'text-blue-600', 
       bg: 'bg-blue-50 dark:bg-blue-500/10' 
     },
@@ -162,18 +173,33 @@ export const Dashboard: React.FC = () => {
             </div>
           </Card>
 
-          <Card title="Active Goals">
+          <Card title="Active Career Goals">
             <div className="space-y-4">
-              {goals.filter(g => g.status === 'In Progress').slice(0, 3).map((goal) => (
+              {careerGoals.filter(g => g.status === 'In Progress').slice(0, 3).map((goal) => (
                 <div key={goal.id} className="p-4 border border-zinc-100 dark:border-zinc-800 rounded-xl">
                   <div className="flex items-center gap-2 mb-2">
                     <Target size={16} className="text-indigo-600" />
-                    <span className="text-sm font-bold text-zinc-900 dark:text-white">{goal.title}</span>
+                    <span className="text-sm font-bold text-zinc-900 dark:text-white">{goal.name}</span>
                   </div>
                   <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5">
                     <div className="bg-indigo-600 h-1.5 rounded-full" style={{ width: `${goal.progress}%` }} />
                   </div>
                   <p className="text-[10px] text-zinc-400 mt-1 text-right">{goal.progress}% Complete</p>
+                </div>
+              ))}
+              {careerGoals.length === 0 && <p className="text-zinc-500 text-xs text-center">No active career goals.</p>}
+            </div>
+          </Card>
+
+          <Card title="Top Skills">
+            <div className="space-y-4">
+              {skills.sort((a, b) => b.proficiency - a.proficiency).slice(0, 4).map((skill) => (
+                <div key={skill.id} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-indigo-600" />
+                    <span className="text-sm text-zinc-700 dark:text-zinc-300">{skill.name}</span>
+                  </div>
+                  <span className="text-xs font-bold text-indigo-600">{skill.proficiency}%</span>
                 </div>
               ))}
             </div>

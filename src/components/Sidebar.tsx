@@ -9,7 +9,10 @@ import {
   Target, 
   BarChart3, 
   Bot, 
-  Settings 
+  Settings,
+  Calculator,
+  Briefcase,
+  History
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -28,6 +31,9 @@ const navItems = [
   { name: 'Goals', path: '/goals', icon: Target },
   { name: 'Analytics', path: '/analytics', icon: BarChart3 },
   { name: 'AI Coach', path: '/ai', icon: Bot },
+  { name: 'Smart Tracker', path: '/smart-tracker', icon: Calculator },
+  { name: 'Career Center', path: '/career', icon: Briefcase },
+  { name: 'Activity Log', path: '/activity', icon: History },
   { name: 'Settings', path: '/settings', icon: Settings },
 ];
 
