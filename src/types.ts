@@ -1,73 +1,78 @@
 export interface UserProfile {
   name: string;
-  height: number;
-  startingWeight: number;
-  targetWeight: number;
-  goalDurationDays: number;
-  startDate: string;
+  location: string;
+  education: string;
+  cgpa: number;
+  careerFocus: string[];
 }
 
-export interface DailyData {
+export interface ResumeItem {
+  id: string;
+  title: string;
+  subtitle: string;
   date: string;
-  dayNumber: number;
-  targetWeight: number;
-  actualWeight: number | null;
-  weightDifference: number | null;
-  steps: number;
-  caloriesConsumed: number;
-  caloriesBurned: number;
-  waterIntake: number;
-  sleepHours: number;
-  exerciseType: string;
-  exerciseDuration: number;
-  studyHours: number;
-  mood: string;
-  notes: string;
+  description: string;
+}
+
+export interface ResumeData {
+  education: ResumeItem[];
+  certifications: ResumeItem[];
+  internships: ResumeItem[];
+  achievements: ResumeItem[];
+  contactLinks: { platform: string; url: string }[];
+}
+
+export interface Skill {
+  id: string;
+  name: string;
+  progress: number;
+  learningHours: number;
+  weeklyImprovement: number;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  techStack: string[];
+  status: 'Planning' | 'In Progress' | 'Completed';
+  completionPercentage: number;
 }
 
 export interface Task {
   id: string;
   title: string;
   completed: boolean;
-  category: string;
   priority: 'Low' | 'Medium' | 'High';
-  date: string;
-}
-
-export interface Habit {
-  id: string;
-  name: string;
+  deadline: string;
   category: string;
-  streak: number;
-  completedDates: string[];
 }
 
-export interface Education {
+export interface RoadmapTask {
   id: string;
-  courseName: string;
-  topic: string;
-  studyHours: number;
-  completionPercentage: number;
-  notes: string;
+  title: string;
+  completed: boolean;
 }
 
-export interface Goal {
+export interface RoadmapPhase {
   id: string;
-  name: string;
-  category: string;
-  startDate: string;
-  targetDate: string;
-  progressPercentage: number;
+  title: string;
+  timeline: string;
+  goal: string;
+  tasks: RoadmapTask[];
 }
 
-export interface AppState {
-  userProfile: UserProfile;
-  dailyData: Record<string, DailyData>;
-  tasks: Task[];
-  habits: Habit[];
-  education: Education[];
-  goals: Goal[];
-  isDarkMode: boolean;
+export interface SessionAction {
+  timestamp: string;
+  action: string;
+  details: any;
+}
+
+export interface Session {
+  sessionId: string;
+  startTime: string;
+  endTime: string | null;
+  actions: SessionAction[];
 }
 
 export interface LogEntry {
@@ -87,4 +92,15 @@ export interface ActivityLog {
   version: number;
   createdAt: string;
   entries: LogEntry[];
+}
+
+export interface AppState {
+  userProfile: UserProfile;
+  resumeData: ResumeData;
+  skills: Skill[];
+  projects: Project[];
+  tasks: Task[];
+  roadmap: RoadmapPhase[];
+  sessions: Session[];
+  isDarkMode: boolean;
 }

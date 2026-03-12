@@ -1,72 +1,80 @@
 import React, { useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Card } from '../components/UI';
-import { Line, Bar } from 'react-chartjs-2';
-import { format, subDays, parseISO } from 'date-fns';
+import { Line, Bar, Doughnut } from 'react-chartjs-2';
 
 export const Analytics: React.FC = () => {
   const { state } = useAppContext();
-  const { dailyData, habits, tasks } = state;
+  const { skills, projects, tasks, roadmap } = state;
 
-  const today = new Date().toISOString().split('T')[0];
-  
-  // Last 30 days data
-  const last30Days = useMemo(() => {
-    return Array.from({ length: 30 }, (_, i) => {
-      const d = subDays(new Date(today), 29 - i);
-      return format(d, 'yyyy-MM-dd');
-    });
-  }, [today]);
+  const skillChartData = useMemo(() => {
+    const sortedSkills = [...skills].sort((a, b) => b.progress - a.progress);
+    return {
+      labels: sortedSkills.map(s => s.name),
+      datasets: [
+        {
+          label: 'Skill Proficiency (%)',
+          data: sortedSkills.map(s => s.progress),
+          backgroundColor: 'rgba(99, 102, 241, 0.8)',
+          borderRadius: 4,
+        }
+      ],
+    };
+  }, [skills]);
 
-  const weightChartData = useMemo(() => ({
-    labels: last30Days.map(d => format(parseISO(d), 'MMM dd')),
-    datasets: [
-      {
-        label: 'Actual Weight',
-        data: last30Days.map(d => dailyData[d]?.actualWeight || null),
-        borderColor: 'rgb(99, 102, 241)',
-        backgroundColor: 'rgba(99, 102, 241, 0.1)',
-        tension: 0.4,
-        spanGaps: true,
-      },
-      {
-        label: 'Target Weight',
-        data: last30Days.map(d => dailyData[d]?.targetWeight || null),
-        borderColor: 'rgb(203, 213, 225)',
-        borderDash: [5, 5],
-        tension: 0.4,
-        pointRadius: 0,
+  const projectChartData = useMemo(() => {
+    return {
+      labels: projects.map(p => p.name),
+      datasets: [
+        {
+          label: 'Project Completion (%)',
+          data: projects.map(p => p.completionPercentage),
+          backgroundColor: 'rgba(16, 185, 129, 0.8)',
+          borderRadius: 4,
+        }
+      ],
+    };
+  }, [projects]);
+
+  const taskCategoryData = useMemo(() => {
+    const categories: Record<string, number> = {};
+    tasks.forEach(t => {
+      if (t.completed) {
+        categories[t.category] = (categories[t.category] || 0) + 1;
       }
-    ],
-  }), [last30Days, dailyData]);
-
-  const studyChartData = useMemo(() => ({
-    labels: last30Days.map(d => format(parseISO(d), 'MMM dd')),
-    datasets: [
-      {
-        label: 'Study Hours',
-        data: last30Days.map(d => dailyData[d]?.studyHours || 0),
-        backgroundColor: 'rgba(16, 185, 129, 0.8)',
-        borderRadius: 4,
-      }
-    ],
-  }), [last30Days, dailyData]);
-
-  const habitChartData = useMemo(() => {
-    const habitCompletionByDay = last30Days.map(date => {
-      let completed = 0;
-      habits.forEach(h => {
-        if (h.completedDates.includes(date)) completed++;
-      });
-      return habits.length > 0 ? (completed / habits.length) * 100 : 0;
     });
 
     return {
-      labels: last30Days.map(d => format(parseISO(d), 'MMM dd')),
+      labels: Object.keys(categories),
       datasets: [
         {
-          label: 'Habit Completion %',
-          data: habitCompletionByDay,
+          data: Object.values(categories),
+          backgroundColor: [
+            'rgba(99, 102, 241, 0.8)',
+            'rgba(16, 185, 129, 0.8)',
+            'rgba(245, 158, 11, 0.8)',
+            'rgba(236, 72, 153, 0.8)',
+            'rgba(139, 92, 246, 0.8)',
+          ],
+          borderWidth: 0,
+        }
+      ],
+    };
+  }, [tasks]);
+
+  const roadmapProgressData = useMemo(() => {
+    const labels = roadmap.map(r => r.title);
+    const data = roadmap.map(phase => {
+      const completed = phase.tasks.filter(t => t.completed).length;
+      return phase.tasks.length > 0 ? (completed / phase.tasks.length) * 100 : 0;
+    });
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Phase Completion (%)',
+          data,
           borderColor: 'rgb(245, 158, 11)',
           backgroundColor: 'rgba(245, 158, 11, 0.1)',
           fill: true,
@@ -74,27 +82,7 @@ export const Analytics: React.FC = () => {
         }
       ],
     };
-  }, [last30Days, habits]);
-
-  const taskChartData = useMemo(() => {
-    const taskCompletionByDay = last30Days.map(date => {
-      const dayTasks = tasks.filter(t => t.date === date);
-      const completed = dayTasks.filter(t => t.completed).length;
-      return dayTasks.length > 0 ? (completed / dayTasks.length) * 100 : 0;
-    });
-
-    return {
-      labels: last30Days.map(d => format(parseISO(d), 'MMM dd')),
-      datasets: [
-        {
-          label: 'Task Completion %',
-          data: taskCompletionByDay,
-          backgroundColor: 'rgba(59, 130, 246, 0.8)',
-          borderRadius: 4,
-        }
-      ],
-    };
-  }, [last30Days, tasks]);
+  }, [roadmap]);
 
   const chartOptions = {
     responsive: true,
@@ -103,50 +91,51 @@ export const Analytics: React.FC = () => {
       legend: { position: 'bottom' as const },
     },
     scales: {
-      y: { beginAtZero: true }
+      y: { beginAtZero: true, max: 100 }
     }
   };
 
-  const weightOptions = {
-    ...chartOptions,
-    scales: {
-      y: { 
-        beginAtZero: false,
-        suggestedMin: state.userProfile.targetWeight - 5,
-        suggestedMax: state.userProfile.startingWeight + 5
-      }
-    }
+  const doughnutOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom' as const },
+    },
   };
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Analytics</h1>
-        <p className="text-zinc-500 dark:text-zinc-400 mt-1">Detailed insights into your 30-day performance.</p>
+        <p className="text-zinc-500 dark:text-zinc-400 mt-1">Detailed insights into your career progression.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card title="Weight Progress (Last 30 Days)">
+        <Card title="Skill Proficiency">
           <div className="h-72">
-            <Line data={weightChartData} options={weightOptions} />
+            <Bar data={skillChartData} options={chartOptions} />
           </div>
         </Card>
 
-        <Card title="Habit Completion Rate (%)">
+        <Card title="Project Completion">
           <div className="h-72">
-            <Line data={habitChartData} options={chartOptions} />
+            <Bar data={projectChartData} options={chartOptions} />
           </div>
         </Card>
 
-        <Card title="Study Hours">
-          <div className="h-72">
-            <Bar data={studyChartData} options={chartOptions} />
+        <Card title="Completed Tasks by Category">
+          <div className="h-72 flex items-center justify-center">
+            {Object.keys(taskCategoryData.labels).length > 0 ? (
+              <Doughnut data={taskCategoryData} options={doughnutOptions} />
+            ) : (
+              <p className="text-zinc-500 italic">No completed tasks yet.</p>
+            )}
           </div>
         </Card>
 
-        <Card title="Task Completion Rate (%)">
+        <Card title="Roadmap Phase Progress">
           <div className="h-72">
-            <Bar data={taskChartData} options={chartOptions} />
+            <Line data={roadmapProgressData} options={chartOptions} />
           </div>
         </Card>
       </div>

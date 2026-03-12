@@ -53,24 +53,20 @@ export const Settings: React.FC = () => {
               <input type="text" value={profileForm.name} onChange={e => setProfileForm({...profileForm, name: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Height (cm)</label>
-              <input type="number" value={profileForm.height} onChange={e => setProfileForm({...profileForm, height: Number(e.target.value)})} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Location</label>
+              <input type="text" value={profileForm.location} onChange={e => setProfileForm({...profileForm, location: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Starting Weight (kg)</label>
-              <input type="number" value={profileForm.startingWeight} onChange={e => setProfileForm({...profileForm, startingWeight: Number(e.target.value)})} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Education</label>
+              <input type="text" value={profileForm.education} onChange={e => setProfileForm({...profileForm, education: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Target Weight (kg)</label>
-              <input type="number" value={profileForm.targetWeight} onChange={e => setProfileForm({...profileForm, targetWeight: Number(e.target.value)})} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">CGPA</label>
+              <input type="number" step="0.1" value={profileForm.cgpa} onChange={e => setProfileForm({...profileForm, cgpa: Number(e.target.value)})} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Goal Duration (Days)</label>
-              <input type="number" value={profileForm.goalDurationDays} onChange={e => setProfileForm({...profileForm, goalDurationDays: Number(e.target.value)})} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Start Date</label>
-              <input type="date" value={profileForm.startDate} onChange={e => setProfileForm({...profileForm, startDate: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Career Focus (comma separated)</label>
+              <input type="text" value={profileForm.careerFocus.join(', ')} onChange={e => setProfileForm({...profileForm, careerFocus: e.target.value.split(',').map(s => s.trim())})} className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
             </div>
           </div>
           <div className="flex justify-end pt-4">

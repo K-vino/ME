@@ -12,7 +12,7 @@ interface Message {
 export const AI: React.FC = () => {
   const { state } = useAppContext();
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'model', content: `Hello ${state.userProfile.name}! I'm your Personal Life OS AI Coach. I have access to your health, productivity, and goal data. How can I help you today?` }
+    { role: 'model', content: `Hello ${state.userProfile.name}! I'm your AI Career Coach. I have access to your resume, skills, projects, and roadmap. How can I help you advance your career today?` }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -46,16 +46,19 @@ export const AI: React.FC = () => {
 
       // Construct system context from user data
       const systemContext = `
-        You are an AI life coach for ${state.userProfile.name}.
-        Profile: Height ${state.userProfile.height}cm, Starting Weight ${state.userProfile.startingWeight}kg, Target Weight ${state.userProfile.targetWeight}kg.
-        Goal: Reach target in ${state.userProfile.goalDurationDays} days starting from ${state.userProfile.startDate}.
+        You are an expert AI Career Coach for ${state.userProfile.name}.
+        Profile: Location: ${state.userProfile.location}, Education: ${state.userProfile.education}, CGPA: ${state.userProfile.cgpa}.
+        Career Focus: ${state.userProfile.careerFocus.join(', ')}.
         
-        Recent Data Summary:
-        - Total Habits: ${state.habits.length}
-        - Total Tasks: ${state.tasks.length}
-        - Total Goals: ${state.goals.length}
+        Resume Summary:
+        - Experience: ${state.resumeData.experience.length} roles
+        - Projects: ${state.projects.length} active/completed projects
+        - Skills: ${state.skills.map(s => s.name).join(', ')}
         
-        Provide concise, encouraging, and actionable advice based on this context.
+        Current Roadmap:
+        ${state.roadmap.map(phase => `- ${phase.title}: ${phase.tasks.filter(t => t.completed).length}/${phase.tasks.length} tasks completed`).join('\n')}
+        
+        Provide concise, encouraging, and actionable career advice based on this context. Focus on skill development, project portfolio building, and achieving their career focus.
       `;
 
       const response = await ai.models.generateContent({
@@ -82,8 +85,8 @@ export const AI: React.FC = () => {
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] max-w-4xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">AI Coach</h1>
-        <p className="text-zinc-500 dark:text-zinc-400 mt-1 mb-6">Your personal assistant powered by Gemini.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">AI Career Coach</h1>
+        <p className="text-zinc-500 dark:text-zinc-400 mt-1 mb-6">Your personal career advisor powered by Gemini.</p>
       </div>
 
       <Card className="flex-1 flex flex-col overflow-hidden p-0">

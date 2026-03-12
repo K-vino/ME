@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Card } from '../components/UI';
-import { CheckCircle2, Circle, Plus, Trash2 } from 'lucide-react';
+import { CheckCircle2, Circle, Plus, Trash2, Calendar } from 'lucide-react';
 import { Task } from '../types';
 
 export const Tasks: React.FC = () => {
   const { state, addTask, updateTask, deleteTask } = useAppContext();
   const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [newTaskCategory, setNewTaskCategory] = useState('Productivity');
+  const [newTaskCategory, setNewTaskCategory] = useState('Learning');
   const [newTaskPriority, setNewTaskPriority] = useState<'Low' | 'Medium' | 'High'>('Medium');
-  const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
+  const [newTaskDeadline, setNewTaskDeadline] = useState(new Date().toISOString().split('T')[0]);
 
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +21,7 @@ export const Tasks: React.FC = () => {
       completed: false,
       category: newTaskCategory,
       priority: newTaskPriority,
-      date: filterDate,
+      deadline: newTaskDeadline,
     };
 
     addTask(newTask);
@@ -32,26 +32,15 @@ export const Tasks: React.FC = () => {
     updateTask({ ...task, completed: !task.completed });
   };
 
-  const filteredTasks = state.tasks.filter(t => t.date === filterDate);
-  const completedTasks = filteredTasks.filter(t => t.completed);
-  const pendingTasks = filteredTasks.filter(t => !t.completed);
+  const completedTasks = state.tasks.filter(t => t.completed);
+  const pendingTasks = state.tasks.filter(t => !t.completed).sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Tasks</h1>
-          <p className="text-zinc-500 dark:text-zinc-400 mt-1">Manage your daily to-dos.</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <label htmlFor="task-date" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Date:</label>
-          <input
-            id="task-date"
-            type="date"
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
-            className="px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
-          />
+          <p className="text-zinc-500 dark:text-zinc-400 mt-1">Manage your career and learning to-dos.</p>
         </div>
       </div>
 
@@ -64,15 +53,22 @@ export const Tasks: React.FC = () => {
             placeholder="Add a new task..."
             className="flex-1 px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
           />
+          <input
+            type="date"
+            value={newTaskDeadline}
+            onChange={(e) => setNewTaskDeadline(e.target.value)}
+            className="px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
+          />
           <select
             value={newTaskCategory}
             onChange={(e) => setNewTaskCategory(e.target.value)}
             className="px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white"
           >
-            <option value="Health">Health</option>
             <option value="Learning">Learning</option>
-            <option value="Productivity">Productivity</option>
-            <option value="Personal">Personal</option>
+            <option value="Project">Project</option>
+            <option value="Career">Career</option>
+            <option value="Practice">Practice</option>
+            <option value="Portfolio">Portfolio</option>
           </select>
           <select
             value={newTaskPriority}
@@ -97,7 +93,7 @@ export const Tasks: React.FC = () => {
               Pending ({pendingTasks.length})
             </h3>
             {pendingTasks.length === 0 ? (
-              <p className="text-zinc-500 dark:text-zinc-400 text-sm italic">No pending tasks for this date.</p>
+              <p className="text-zinc-500 dark:text-zinc-400 text-sm italic">No pending tasks.</p>
             ) : (
               <ul className="space-y-2">
                 {pendingTasks.map(task => (
@@ -108,13 +104,16 @@ export const Tasks: React.FC = () => {
                       </button>
                       <div>
                         <p className="text-zinc-900 dark:text-white font-medium">{task.title}</p>
-                        <div className="flex gap-2 mt-1">
+                        <div className="flex items-center gap-2 mt-1">
                           <span className="text-xs px-2 py-0.5 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-full">{task.category}</span>
                           <span className={`text-xs px-2 py-0.5 rounded-full ${
                             task.priority === 'High' ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400' :
                             task.priority === 'Medium' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
                             'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
                           }`}>{task.priority}</span>
+                          <span className="text-xs text-zinc-500 flex items-center">
+                            <Calendar className="w-3 h-3 mr-1" /> {task.deadline}
+                          </span>
                         </div>
                       </div>
                     </div>
